@@ -368,15 +368,15 @@ func TestMintActorCertificateRequiresCertificate(t *testing.T) {
 	}
 }
 
-type fakeEgressPolicyControl struct {
-	ateapipb.ControlClient
+type fakeEgressPolicyService struct {
+	ateapipb.WorkerServiceClient
 
 	got  []*ateapipb.GetActorEgressPolicyRequest
 	resp *ateapipb.EgressPolicy
 	err  error
 }
 
-func (c *fakeEgressPolicyControl) GetActorEgressPolicy(_ context.Context, in *ateapipb.GetActorEgressPolicyRequest, _ ...grpc.CallOption) (*ateapipb.EgressPolicy, error) {
+func (c *fakeEgressPolicyService) GetActorEgressPolicy(_ context.Context, in *ateapipb.GetActorEgressPolicyRequest, _ ...grpc.CallOption) (*ateapipb.EgressPolicy, error) {
 	c.got = append(c.got, in)
 	if c.err != nil {
 		return nil, c.err
@@ -427,6 +427,16 @@ func TestGetActorEgressPolicy(t *testing.T) {
 		serviceErr:    status.Error(codes.NotFound, "EgressPolicy for actor team-a/actor-1 not found"),
 		wantForwarded: forwarded,
 	}, {
+		// The control plane refuses an actor this node does not host with the
+		// same NotFound, so the worker denies it all egress.
+		name:       "leaves an actor not hosted here unset",
+		req:        &ateletpb.GetActorEgressPolicyRequest{ActorAtespace: "team-a", ActorName: "elsewhere"},
+		serviceErr: status.Error(codes.NotFound, "EgressPolicy for actor team-a/elsewhere not found"),
+		wantForwarded: []*ateapipb.GetActorEgressPolicyRequest{{
+			Actor: &ateapipb.ObjectRef{Atespace: "team-a", Name: "elsewhere"},
+			Name:  resources.SingletonName,
+		}},
+	}, {
 		name:            "requires a certificate",
 		unauthenticated: true,
 		req:             req,
@@ -446,8 +456,8 @@ func TestGetActorEgressPolicy(t *testing.T) {
 	}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			control := &fakeEgressPolicyControl{resp: tt.resp, err: tt.serviceErr}
-			svc := &workerSupportServer{control: control}
+			workers := &fakeEgressPolicyService{resp: tt.resp, err: tt.serviceErr}
+			svc := &workerSupportServer{workers: workers}
 			ctx := workerContext(t, "pod-a")
 			if tt.unauthenticated {
 				ctx = context.Background()
@@ -457,7 +467,7 @@ func TestGetActorEgressPolicy(t *testing.T) {
 			if got := status.Code(err); got != tt.wantCode {
 				t.Fatalf("GetActorEgressPolicy() code = %v (%v), want %v", got, err, tt.wantCode)
 			}
-			if diff := cmp.Diff(tt.wantForwarded, control.got, protocmp.Transform()); diff != "" {
+			if diff := cmp.Diff(tt.wantForwarded, workers.got, protocmp.Transform()); diff != "" {
 				t.Errorf("forwarded requests mismatch (-want +got):\n%s", diff)
 			}
 			if err != nil {

@@ -48,8 +48,8 @@ service WorkerSupport {
 
   // GetActorEgressPolicy returns the egress policy of the actor this
   // worker hosts, which atelet reads from the control plane's
-  // Control.GetActorEgressPolicy. An error is the control plane's, passed
-  // through as it was given.
+  // WorkerService.GetActorEgressPolicy. An error is the control plane's,
+  // passed through as it was given.
   rpc GetActorEgressPolicy(GetActorEgressPolicyRequest) returns (GetActorEgressPolicyResponse) {}
 }
 

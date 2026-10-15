@@ -427,7 +427,6 @@ func main() {
 
 	ateletpb.RegisterWorkerSupportServer(workerFacingSrv, &workerSupportServer{
 		workers: ateapipb.NewWorkerServiceClient(ateapiConn),
-		control: ateapipb.NewControlClient(ateapiConn),
 	})
 	go func() {
 		if err := workerFacingSrv.Serve(workerFacingLis); err != nil {

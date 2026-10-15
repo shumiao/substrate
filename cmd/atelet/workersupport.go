@@ -34,7 +34,6 @@ import (
 type workerSupportServer struct {
 	ateletpb.UnimplementedWorkerSupportServer
 	workers ateapipb.WorkerServiceClient
-	control ateapipb.ControlClient
 }
 
 func (b *workerSupportServer) MintActorCertificate(ctx context.Context, req *ateletpb.MintActorCertificateRequest) (*ateletpb.MintActorCertificateResponse, error) {
@@ -239,9 +238,10 @@ func (s *workerSupportServer) GetActorEgressPolicy(
 		return nil, resources.ToGRPCStatusError(errs)
 	}
 
-	// TODO(bowei): add validation for which Actor requested this.
+	// TODO(bowei): add validation for which Actor requested this. The control
+	// plane only checks that the Actor is hosted on this node.
 
-	policy, err := s.control.GetActorEgressPolicy(ctx, &ateapipb.GetActorEgressPolicyRequest{
+	policy, err := s.workers.GetActorEgressPolicy(ctx, &ateapipb.GetActorEgressPolicyRequest{
 		Actor: &ateapipb.ObjectRef{
 			Atespace: req.GetActorAtespace(),
 			Name:     req.GetActorName(),
@@ -253,7 +253,8 @@ func (s *workerSupportServer) GetActorEgressPolicy(
 	// Actor: Policies are applied by (user-given) name as opposed to linked
 	// explicitly to the internal Actor UUID.
 
-	// NotFound is treated as empty policy (block all).
+	// NotFound is treated as empty policy (block all). The control plane also
+	// answers NotFound for an Actor this node does not host.
 	if status.Code(err) == codes.NotFound {
 		return &ateletpb.GetActorEgressPolicyResponse{}, nil
 	}

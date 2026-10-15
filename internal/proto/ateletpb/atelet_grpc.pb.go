@@ -68,8 +68,8 @@ type WorkerSupportClient interface {
 	RequestActorSuspend(ctx context.Context, in *RequestActorSuspendRequest, opts ...grpc.CallOption) (*RequestActorSuspendResponse, error)
 	// GetActorEgressPolicy returns the egress policy of the actor this
 	// worker hosts, which atelet reads from the control plane's
-	// Control.GetActorEgressPolicy. An error is the control plane's, passed
-	// through as it was given.
+	// WorkerService.GetActorEgressPolicy. An error is the control plane's,
+	// passed through as it was given.
 	GetActorEgressPolicy(ctx context.Context, in *GetActorEgressPolicyRequest, opts ...grpc.CallOption) (*GetActorEgressPolicyResponse, error)
 }
 
@@ -150,8 +150,8 @@ type WorkerSupportServer interface {
 	RequestActorSuspend(context.Context, *RequestActorSuspendRequest) (*RequestActorSuspendResponse, error)
 	// GetActorEgressPolicy returns the egress policy of the actor this
 	// worker hosts, which atelet reads from the control plane's
-	// Control.GetActorEgressPolicy. An error is the control plane's, passed
-	// through as it was given.
+	// WorkerService.GetActorEgressPolicy. An error is the control plane's,
+	// passed through as it was given.
 	GetActorEgressPolicy(context.Context, *GetActorEgressPolicyRequest) (*GetActorEgressPolicyResponse, error)
 	mustEmbedUnimplementedWorkerSupportServer()
 }
