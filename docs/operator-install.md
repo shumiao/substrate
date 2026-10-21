@@ -344,6 +344,14 @@ that leave it empty use `--snapshot-location`. Without the gate,
 ate-api-server ignores `snapshotConfig.storageLocation`. See
 [Snapshot Storage Layout](api-guide.md#snapshot-storage-layout).
 
+## Sandbox runtimes
+
+`ate-setup deploy ate-system` installs the gVisor runtime. To add micro-VM, run
+`hack/install-microvm-deps.sh --install` against the same cluster, with
+`BUCKET_NAME` set to `storage.bucketName`. See
+[Sandbox runtimes](sandbox-runtimes.md) for node requirements and for running
+actors on each runtime.
+
 ## Secrets
 
 Credentials should come from the environment, not from a document that gets

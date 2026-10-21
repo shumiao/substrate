@@ -148,6 +148,9 @@ curl -X POST \
    -i http://localhost:8000/
 ```
 
+The counter runs on gVisor. On a Linux host with `/dev/kvm`, one more command
+adds the micro-VM runtime; see [Sandbox runtimes](docs/sandbox-runtimes.md#on-kind).
+
 ### GKE Quickstart (Development)
 
 1. Create and configure your environment file:
@@ -195,6 +198,14 @@ curl -X POST \
    ```bash
    go run ./cmd/ate-setup deploy demo demo-counter
    ```
+
+6. Optionally, enable the micro-VM runtime. The cluster `setup-gcp` creates
+   already has nested virtualization:
+   ```bash
+   hack/install-microvm-deps.sh --install
+   ```
+   See [Sandbox runtimes](docs/sandbox-runtimes.md) for choosing a runtime
+   and running actors on micro-VM.
 
 #### Custom Setup and Deployment
 
@@ -247,6 +258,7 @@ We provide several sample applications demonstrating Agent Substrate's capabilit
 
 ### Documentation & Guides
 * [Architecture](docs/architecture.md): How the control plane, node supervisor, and networking stack fit together.
+* [Sandbox Runtimes](docs/sandbox-runtimes.md): Choosing between gVisor and micro-VM, node requirements, and enabling micro-VM.
 * [API Configuration Guide](docs/api-guide.md): Detailed reference for configuring WorkerPools, ActorTemplates, Secrets, and Volumes.
 * [Full CLI Documentation](cmd/kubectl-ate/README.md): Installation and usage for `kubectl-ate`.
 * [Glossary](docs/glossary.md): Core terms (Actor, Atespace, ActorTemplate, WorkerPool, Worker, ate-api-server, atenet, atelet, ateworker) and how they relate.
@@ -272,7 +284,7 @@ We provide several sample applications demonstrating Agent Substrate's capabilit
 * `cmd/ate-idp-server`: Serves the OpenID discovery document and key set that relying parties use to verify actor JWTs.
 * `cmd/atenet`: A combined networking controller providing Envoy routing and proxy sidecars.
 * `cmd/ateworker-gvisor`: An interior-pod helper running inside sandboxed worker pods to execute `runsc` checkpoint and restore commands.
-* `cmd/ateworker-microvm`: The micro-VM peer of `ateworker-gvisor`, running actors as cloud-hypervisor VMs.
+* `cmd/ateworker-microvm`: The worker for the micro-VM sandbox class. It runs each actor in a Kata guest on Cloud Hypervisor and checkpoints and restores the VM.
 * `cmd/podcertcontroller`: A "polyfill" that provides Pod Certificate signers that
   will eventually ship in upstream Kubernetes (with different names).
 * `cmd/kubectl-ate`: A CLI tool for managing Agent Substrate resources. See its [README](cmd/kubectl-ate/README.md).

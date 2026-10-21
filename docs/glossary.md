@@ -23,11 +23,11 @@ For how the pieces fit together, see the [Architecture](architecture.md) and
   the [atecontroller](#components).
 
 - **SandboxConfig** (Kubernetes CRD): a cluster-scoped resource holding the
-  sandbox binaries for one runtime family (the gVisor `runsc` binary, or a
-  micro-VM kernel/firmware/config). An actor resolves its sandbox at first cold
-  boot from the config its `ActorTemplate` names (naming one is currently
-  required; per-class cluster defaults are planned), so one config pins the
-  runtime version for many templates.
+  sandbox binaries for one sandbox class: the gVisor `runsc` binary, or a
+  micro-VM's VMM, `virtiofsd`, guest kernel and guest image. A `WorkerPool`
+  resolves one per sandbox class, by `configRef` or from the class default, so
+  one config pins the runtime version for many pools. See
+  [Sandbox runtimes](sandbox-runtimes.md).
 
 ## Records (dynamic state, in the control-plane store)
 

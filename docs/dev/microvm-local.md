@@ -1,19 +1,17 @@
 # Running the microVM runtime locally
 
-The microVM sandbox class (`ateworker-microvm`: a Kata guest on Cloud Hypervisor)
-needs `/dev/kvm`, which takes some extra setup compared to the default gVisor
-path. This guide covers just that delta: getting a KVM-capable Docker
-environment — on Linux, or on Apple Silicon macOS via
-[Lima](https://lima-vm.io/) — then running the microVM counter demo and
-verifying a guest-memory snapshot round-trip.
+This guide sets up a local kind cluster for micro-VM development, on a Linux
+host with `/dev/kvm` or on Apple Silicon macOS through
+[Lima](https://lima-vm.io/). It then runs the micro-VM counter demo and checks
+a guest-memory snapshot round trip. To enable micro-VM on GKE or another
+cluster, see [Sandbox runtimes](../sandbox-runtimes.md).
 
 ## Prerequisites
 
 Complete the
 [Quickstart (Development)](../../README.md#quickstart-development) in the
-README first — it covers the base tooling and the default (gVisor) path this
-guide builds on. For background on the runtime, see
-[architecture.md](../architecture.md) and
+README first. It covers the base tooling this guide builds on. For background
+on the runtime, see [architecture.md](../architecture.md) and
 [hack/microvm-assets/README.md](../../hack/microvm-assets/README.md).
 
 ## Option A: Linux host with KVM
@@ -53,7 +51,7 @@ kubectl get nodes -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.c
 ### 3. Run the microVM demo
 
 ```sh
-./hack/run-microvm-demo-kind.sh
+ATE_CREDENTIAL_PROVIDER='{"name":"k8s.io"}' ./hack/run-microvm-demo-kind.sh
 ```
 
 This is a one-shot bring-up: it deploys the control plane, installs the
@@ -164,7 +162,7 @@ echo 'export DOCKER_HOST="unix://${HOME}/.lima/docker-nested/sock/docker.sock"' 
 cd <your substrate checkout>
 
 ./hack/create-kind-cluster.sh
-./hack/run-microvm-demo-kind.sh
+ATE_CREDENTIAL_PROVIDER='{"name":"k8s.io"}' ./hack/run-microvm-demo-kind.sh
 ```
 
 Verify as in Option A, step 4.
@@ -177,7 +175,7 @@ resume it and confirm the count continues — proving the guest-memory snapshot
 round-tripped. The flow is the same as the
 [README Quickstart](../../README.md#quickstart-development), just with the
 microVM template; see the
-[counter demo's micro-VM variant](../../demos/counter/README.md#micro-vm-variant)
+[counter demo's micro-VM variant](../../demos/counter/README.md)
 for background. Note that an actor template showing a GOLDEN SNAPSHOT in the
 verify step already exercises the runtime end-to-end — the golden snapshot
 requires a full guest boot and checkpoint.
